@@ -1,1 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Software</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .working-area {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .btn-yellow {
+            background-color: #ffc107;
+            color: #fff;
+        }
+        .btn-yellow:hover {
+            background-color: #e0a800;
+        }
+        .btn-red {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .btn-red:hover {
+            background-color: #c82333;
+        }
+        .btn-blue {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+        .btn-blue:hover {
+            background-color: #0056b3;
+        }
+        .form-control {
+            margin-bottom: 10px;
+        }
+        .search-icon {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            padding: 5px;
+            border: 1px solid #ddd;
+        }
+        .search-icon input {
+            border: none;
+            outline: none;
+            flex: 1;
+            padding-left: 10px;
+            background-color: transparent;
+        }
+        .search-icon i {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2 class="text-center mb-4">Todo Software</h2>
+
+        <!-- Compact Search Input -->
+        <div class="search-icon">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search tasks..." oninput="searchTasks()">
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="d-flex flex-column mb-3">
+            <button class="btn btn-blue mb-2" onclick="showAllTasks()">All Tasks</button>
+            <button class="btn btn-yellow mb-2" onclick="showTodayTasks()">Today</button>
+            <button class="btn btn-red mb-2" onclick="showUpcomingTasks()">Upcoming</button>
+        </div>
+
+        <!-- Section Management -->
+        <div class="mb-3">
+            <input type="text" id="sectionInput" class="form-control" placeholder="Enter a new section">
+            <button class="btn btn-blue w-100" onclick="addSection()">Add Section</button>
+        </div>
+
+        <button class="btn btn-red w-100 mt-3" onclick="deleteAllSections()">Delete All Sections</button>
+    </div>
+
+    <div class="working-area">
+        <div id="sectionsContainer">
+            <!-- Sections and tasks will appear here -->
+        </div>
+    </div>
+
+    <script>
+        let sections = JSON.parse(localStorage.getItem('sections')) || [];
+
+        function saveSections() {
+            localStorage.setItem('sections', JSON.stringify(sections));
+        }
+
+        function renderSections(filteredSections = null) {
+            const sectionsContainer = document.getElementById('sectionsContainer');
+            sectionsContainer.innerHTML = '';
+            const toRender = filteredSections || sections;
+
+            toRender.forEach((section, sectionIndex) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'mb-4';
+                sectionDiv.innerHTML = `
+                    <h5 class="d-flex justify-content-between align-items-center">
+                        <span>${section.name}</span>
+                    </h5>
+                    <ul class="list-group">
+                        ${section.tasks.map((task, taskIndex) => `
+                            <li class="list-group-item task-item">
+                                <strong>Task:</strong> ${task.text} <br>
+                                <strong>Due:</strong> ${task.dueDate || 'No date'} <br>
+                                <strong>Ends:</strong> ${task.endDate || 'No end date'}
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                sectionsContainer.appendChild(sectionDiv);
+            });
+        }
+
+        function searchTasks() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filteredSections = sections.map(section => ({
+                ...section,
+                tasks: section.tasks.filter(task => task.text.toLowerCase().includes(query)),
+            })).filter(section => section.tasks.length);
+            renderSections(filteredSections);
+        }
+
+        function addSection() {
+            const sectionInput = document.getElementById('sectionInput');
+            const sectionName = sectionInput.value.trim();
+            if (sectionName) {
+                sections.push({ name: sectionName, tasks: [] });
+                saveSections();
+                sectionInput.value = '';
+                renderSections();
+            }
+        }
+
+        function showAllTasks() {
+            renderSections();
+        }
+
+        function showTodayTasks() {
+            const today = new Date().toISOString().split('T')[0];
+            const filteredSections = sections.map(section => ({
+                ...section,
+                tasks: section.tasks.filter(task => task.dueDate === today),
+            })).filter(section => section.tasks.length);
+            renderSections(filteredSections);
+        }
+
+        renderSections();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
